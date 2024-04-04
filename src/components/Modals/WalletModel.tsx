@@ -27,7 +27,6 @@ import {
   styled,
   Avatar,
   Hidden,
-  MenuItem,
   IconButton,
   keyframes,
   useMediaQuery,
@@ -445,7 +444,7 @@ export default function WalletModal() {
           </CustomBox>
         </motion.div>
       </Modal>
-      <Modal
+      {/* <Modal
         aria-labelledby="transition-modal-title"
         aria-describedby="transition-modal-description"
         open={open && openChainModal === false}
@@ -482,7 +481,7 @@ export default function WalletModal() {
             <Button onClick={() => setOpenChainModal(false)}>Back</Button>
           </FormControl>
         </CustomBox>
-      </Modal>
+      </Modal> */}
 
       <Modal
         aria-labelledby="transition-modal-title"
