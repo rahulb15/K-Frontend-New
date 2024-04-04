@@ -4,6 +4,9 @@ import "./globals.css";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
 import { ClientContextProvider } from "@/contexts/WalletConnectContext";
+import { AccountProvider } from "@/contexts/AccountContext";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,10 +23,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter?.className}>
+        <ToastContainer />
         <ClientContextProvider>
-          <Header />
-          {children}
-          <Footer />
+          <AccountProvider>
+            <Header />
+            {children}
+            <Footer />
+          </AccountProvider>
         </ClientContextProvider>
       </body>
     </html>

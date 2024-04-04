@@ -1,4 +1,4 @@
-import React,{useState,useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import Backdrop from "@mui/material/Backdrop";
 import Modal from "@mui/material/Modal";
 import Fade from "@mui/material/Fade";
@@ -7,10 +7,21 @@ import { motion } from "framer-motion";
 import WalletConnectLogo from "../../../public/assets/wallet/Blue (Default)/Logo.svg";
 import EckoWalletLogo from "../../../public/assets/wallet/eckowallet1.svg";
 import ZelcoreWalletLogo from "../../../public/assets/wallet/zelcore-logo.svg";
+import KoalaWalletLogo from "../../../public/assets/wallet/koala.svg";
+import ChainweaverWalletLogo from "../../../public/assets/wallet/chainweaver.png";
 import BannerImage from "../../../public/assets/images/pact-img.png";
 import Image from "next/image";
 import { useWalletConnectClient } from "@/contexts/WalletConnectContext";
 import { getAccounts, openZelcore } from "../../utils/zelcore";
+import { useAccountContext } from "../../contexts";
+import { NETWORKID } from "../../constants/contextConstants";
+console.log(NETWORKID, "NETWORKID");
+import { toast } from "react-toastify";
+import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
+import FormControl from "@mui/material/FormControl";
+import Select, { SelectChangeEvent } from "@mui/material/Select";
+
 import {
   Box,
   styled,
@@ -21,6 +32,7 @@ import {
   keyframes,
   useMediaQuery,
   Button,
+  TextField,
 } from "@mui/material";
 
 const style = {
@@ -76,6 +88,16 @@ const StyledButton = styled(Button)(({ theme }) => ({
   },
 }));
 
+const WalletsBox = styled(Box)(({ theme }) => ({
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "center",
+  alignItems: "center",
+  "& button": {
+    margin: "0 8px",
+  },
+}));
+
 const CustomBox = styled(Box)(({ theme }) => ({
   position: "absolute",
   top: "50%",
@@ -83,14 +105,14 @@ const CustomBox = styled(Box)(({ theme }) => ({
   transform: "translate(-50%, -50%)",
   width: 750,
   bgcolor: "background.paper",
-  border: "2px solid #000",
+  border: "2px solid #5755FE",
   p: 4,
   borderRadius: 8,
   [theme.breakpoints.down("md")]: {
     width: "100%",
   },
-  background: "#fff",
-  boxShadow: "0 0 10px 5px rgba(0, 0, 0, 0.1)",
+  background: "#7AA2E3",
+  boxShadow: "0 0 10px 5px #5755FE",
   padding: 16,
   textAlign: "center",
   "&:hover": {
@@ -120,10 +142,16 @@ const InnserBox = styled(Box)(({ theme }) => ({
 export default function WalletModal() {
   const { session, connect, disconnect, isInitializing } =
     useWalletConnectClient();
+  const account = useAccountContext();
+  console.log(account, "account");
   const [open, setOpen] = React.useState(false);
   const [accounts, setAccounts] = useState<any>();
+  const [address, setAddress] = useState<string>("");
+  const [successWalletAddress, setSuccessWalletAddress] = useState<string>("");
+  const [zelcoreAccounts, setZelcoreAccounts] = useState<[string] | []>([]);
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [approved, setApproved] = useState(false);
+  const [openChainModal, setOpenChainModal] = useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
   const handleConnect = () => {
@@ -131,16 +159,17 @@ export default function WalletModal() {
     handleClose();
   };
 
-
   const getAccountsFromWallet = async () => {
     console.log("getAccountsFromWallet");
     openZelcore();
     const getAccountsResponse = await getAccounts();
     console.log(getAccountsResponse, "getAccountsResponse");
     if (getAccountsResponse.status === "success") {
+      setSuccessWalletAddress(getAccountsResponse.data);
       setApproved(true);
       setAccounts(getAccountsResponse.data);
       setOpen(false);
+      toast.success("Zelcore Wallet Connected Successfully");
     } else {
       /* walletError(); */
     }
@@ -152,13 +181,86 @@ export default function WalletModal() {
   //   fetchData();
   // }, []);
 
-
   const handleZelcoreOpen = async () => {
     getAccountsFromWallet();
-  }
+  };
 
+  const eckoWalletConnect = async () => {
+    // const checkNetwork = await window.kadena.request({
+    //   method: "kda_getNetwork",
+    // });
+    console.log("ddddddddddd");
+    // const checkNetwork = await (window as any).kadena.request({ method: "kda_getNetwork" });
+    // console.log(checkNetwork, "checkNetwork");
 
-console.log(accounts, "accounts");
+    const checkNetwork = await (window as any).kadena.request({
+      method: "kda_getNetwork",
+    });
+    console.log(checkNetwork, "checkNetwork");
+    if (checkNetwork?.name === "Testnet" || checkNetwork?.name === "Mainnet") {
+      console.log("Testnet");
+      const response = await (window as any).kadena.request({
+        method: "kda_connect",
+        networkId: NETWORKID,
+      });
+      console.log(response, "response");
+      if (response?.status === "success") {
+        const account = await (window as any).kadena.request({
+          method: "kda_checkStatus",
+          networkId: NETWORKID,
+        });
+        console.log(account, "account");
+        if (account?.status === "success") {
+          setSuccessWalletAddress(response.account.account);
+          setAccounts(account.data);
+          setOpen(false);
+          toast.success("Ecko Wallet Connected Successfully");
+        }
+      }
+    }
+  };
+
+  const koalaWalletConnect = async () => {
+    const response = await (window as any).koala.request({
+      method: "kda_connect",
+      networkId: NETWORKID,
+    });
+    console.log(response, "response");
+    if (response?.status === "success") {
+      setSuccessWalletAddress(response.wallet.account);
+      setAccounts(account.data);
+      setOpen(false);
+      toast.success("Koala Wallet Connected Successfully");
+
+      // const account = await (window as any).koala.request({
+      //   method: "kda_checkStatus",
+      //   networkId: NETWORKID,
+      // });
+      // console.log(account, "account");
+      // if (account?.status === "success") {
+      //   setAccounts(account.data);
+      //   setOpen(false);
+      //   toast.success("Koala Wallet Connected Successfully");
+      // }
+    }
+  };
+
+  console.log(accounts, "accounts");
+
+  const handleConnectChainweaver = async () => {
+    const data = await account.setVerifiedAccount(address);
+    console.log(data, "data");
+    if (data?.status === "success") {
+      setSuccessWalletAddress(data.data.account);
+      setOpen(false);
+      setOpenChainModal(false);
+      toast.success("Chainweaver Connected Successfully");
+    }
+  };
+
+  const modalOpen = () => {
+    setOpenChainModal(true);
+  };
 
   return (
     <div>
@@ -168,14 +270,17 @@ console.log(accounts, "accounts");
       </StyledButton> */}
       <motion.div whileHover={{ scale: 1.1 }}>
         <StyledButton onClick={handleOpen}>
-          <span>Wallet Connect</span>
+          <span>
+            {/* Wallet Connect */}
+            {successWalletAddress ? successWalletAddress : "Connect Wallet"}
+          </span>
         </StyledButton>
       </motion.div>
 
       <Modal
         aria-labelledby="transition-modal-title"
         aria-describedby="transition-modal-description"
-        open={open}
+        open={open && openChainModal === false}
         onClose={handleClose}
         closeAfterTransition
         slots={{ backdrop: Backdrop }}
@@ -227,11 +332,11 @@ console.log(accounts, "accounts");
               animate={{ scale: 1 }}
               transition={{ duration: 0.5 }}
             >
-              <Typography variant="h6" component="h2" sx={{ mt: 4 }}>
+              <Typography variant="h4" component="h2" sx={{ mt: 4 }}>
                 Connect Wallet
               </Typography>
 
-              <Typography sx={{ mt: 2 }}>
+              <Typography sx={{ mt: 2 }} variant="h6" component="h2">
                 Connect your wallet to access your account
               </Typography>
             </motion.div>
@@ -263,51 +368,149 @@ console.log(accounts, "accounts");
                     margin: "0 56px",
                   }}
                 ></Box>
+                <WalletsBox>
+                  <motion.div
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    <Button onClick={handleConnect}>
+                      <Image
+                        src={WalletConnectLogo}
+                        alt="Wallet Connect"
+                        width={80}
+                        height={80}
+                      />
+                    </Button>
+                  </motion.div>
 
-                <motion.div
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                >
-                  <Button onClick={handleConnect}>
-                    <Image
-                      src={WalletConnectLogo}
-                      alt="Wallet Connect"
-                      width={80}
-                      height={80}
-                    />
-                  </Button>
-                </motion.div>
-
-                <motion.div
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                >
-                  <Button>
-                    <Image
-                      src={EckoWalletLogo}
-                      alt="Ecko Wallet"
-                      width={80}
-                      height={80}
-                    />
-                  </Button>
-                </motion.div>
-                <motion.div
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                >
-                  <Button onClick={getAccountsFromWallet}>
-                    <Image
-                      src={ZelcoreWalletLogo}
-                      alt="Zelcore Wallet"
-                      width={80}
-                      height={80}
-                    />
-                  </Button>
-                </motion.div>
+                  <motion.div
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    <Button onClick={eckoWalletConnect}>
+                      <Image
+                        src={EckoWalletLogo}
+                        alt="Ecko Wallet"
+                        width={80}
+                        height={80}
+                      />
+                    </Button>
+                  </motion.div>
+                </WalletsBox>
+                <WalletsBox>
+                  <motion.div
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    <Button onClick={koalaWalletConnect}>
+                      <Image
+                        src={KoalaWalletLogo}
+                        alt="Ecko Wallet"
+                        width={80}
+                        height={80}
+                      />
+                    </Button>
+                  </motion.div>
+                  <motion.div
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    <Button onClick={getAccountsFromWallet}>
+                      <Image
+                        src={ZelcoreWalletLogo}
+                        alt="Zelcore Wallet"
+                        width={80}
+                        height={80}
+                      />
+                    </Button>
+                  </motion.div>
+                </WalletsBox>
+                <WalletsBox>
+                  <motion.div
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    <Button onClick={modalOpen}>
+                      <Image
+                        src={ChainweaverWalletLogo}
+                        alt="Zelcore Wallet"
+                        width={80}
+                        height={80}
+                      />
+                    </Button>
+                  </motion.div>
+                </WalletsBox>
               </InnserBox>
             </motion.div>
           </CustomBox>
         </motion.div>
+      </Modal>
+      <Modal
+        aria-labelledby="transition-modal-title"
+        aria-describedby="transition-modal-description"
+        open={open && openChainModal === false}
+        onClose={handleClose}
+        closeAfterTransition
+        slots={{ backdrop: Backdrop }}
+        slotProps={{
+          backdrop: {
+            timeout: 500,
+          },
+        }}
+      >
+        <CustomBox sx={{ width: 400 }}>
+          <FormControl fullWidth>
+            <InputLabel id="demo-simple-select-label">
+              Select Account
+            </InputLabel>
+            <Select
+              labelId="demo-simple-select-label"
+              id="demo-simple-select"
+              value={selectedAccount}
+              label="Select Account"
+              onChange={(e: SelectChangeEvent) =>
+                setSelectedAccount(e.target.value)
+              }
+            >
+              {accounts?.map((account: any, index: number) => (
+                <MenuItem key={index} value={account}>
+                  {account}
+                </MenuItem>
+              ))}
+            </Select>
+            <Button onClick={handleConnectChainweaver}>Connect</Button>
+            <Button onClick={() => setOpenChainModal(false)}>Back</Button>
+          </FormControl>
+        </CustomBox>
+      </Modal>
+
+      <Modal
+        aria-labelledby="transition-modal-title"
+        aria-describedby="transition-modal-description"
+        open={open && openChainModal === true}
+        onClose={handleClose}
+        closeAfterTransition
+        slots={{ backdrop: Backdrop }}
+        slotProps={{
+          backdrop: {
+            timeout: 500,
+          },
+        }}
+      >
+        {/* inputfield */}
+        <CustomBox sx={{ width: 400 }}>
+          <div>
+            <TextField
+              id="outlined-basic"
+              label="Enter Account"
+              variant="outlined"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+            />
+            <Button onClick={handleConnectChainweaver}>Connect</Button>
+            <Button onClick={() => setOpenChainModal(false)}>Back</Button>
+          </div>
+        </CustomBox>
       </Modal>
     </div>
   );
