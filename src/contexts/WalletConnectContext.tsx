@@ -128,6 +128,7 @@ export function ClientContextProvider({
         topic: session.topic,
         reason: getSdkError('USER_DISCONNECTED'),
       });
+      localStorage.removeItem('accountType');
     } catch (error) {
       console.error('SignClient.disconnect failed:', error);
     } finally {

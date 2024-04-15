@@ -25,7 +25,7 @@ export const AccountProvider = (props) => {
         NETWORK
       );
 
-      console.log(data);
+      console.log(data,"data");
 
       if (data.result.status === 'success') {
         setLocalRes(data.result.data);

@@ -3,8 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
-import { ClientContextProvider } from "@/contexts/WalletConnectContext";
-import { AccountProvider } from "@/contexts/AccountContext";
+import { Providers } from "./providers";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -24,13 +23,12 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter?.className}>
         <ToastContainer />
-        <ClientContextProvider>
-          <AccountProvider>
+        <Providers >
             <Header />
             {children}
             <Footer />
-          </AccountProvider>
-        </ClientContextProvider>
+        </Providers>
+
       </body>
     </html>
   );

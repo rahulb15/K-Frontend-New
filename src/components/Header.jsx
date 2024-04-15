@@ -16,6 +16,9 @@ import Image from "next/image";
 import React from "react";
 import { NotificationProvider } from "../contexts/NotificationContext";
 import { useTheme, ThemeProvider, createTheme } from "@mui/material/styles";
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import DeleteIcon from "@mui/icons-material/Delete";
+import Badge from "@mui/material/Badge";
 
 //theme toggle icon
 import { Brightness4, Brightness7 } from "@mui/icons-material";
@@ -108,6 +111,11 @@ const IconBox = styled("div")(({ theme }) => ({
 const Header = () => {
   const { logout, user } = useAuth();
   const [mode, setMode] = React.useState("light");
+  const [cartItems, setCartItems] = React.useState([
+    "Apple",
+    "Banana",
+    "Orange",
+  ]);
 
   const toggleTheme = () => {
     setMode((prevMode) => (prevMode === "light" ? "dark" : "light"));
@@ -122,20 +130,33 @@ const Header = () => {
     [mode]
   );
 
+  const addToCart = (item) => {
+    setCartItems([...cartItems, item]);
+  };
+
+  const removeFromCart = (index) => {
+    const updatedCart = [...cartItems];
+    updatedCart.splice(index, 1);
+    setCartItems(updatedCart);
+  };
+
+
+
+
   return (
     <ThemeProvider theme={theme}>
       <TopbarRoot>
         <TopbarContainer>
           <Box display="flex">
             <IconBox>
-              {/* <StyledIconButton>
-                <Image
+              <StyledIconButton>
+                {/* <Image
                   src="/assets/images/logo-white.svg"
                   alt="logo"
                   width={150}
                   height={150}
-                />
-              </StyledIconButton> */}
+                /> */}
+              </StyledIconButton>
             </IconBox>
           </Box>
 
@@ -147,6 +168,33 @@ const Header = () => {
             </StyledButton> */}
             <WalletModal />
 
+            <MatMenu
+              menuButton={
+                <IconButton>
+                  {/* <ShoppingCartIcon /> */}
+                  {cartItems.length === 0 && <ShoppingCartIcon />}
+                  {cartItems.length > 0 && (
+                    <Badge badgeContent={cartItems.length} color="error">
+                      <ShoppingCartIcon />
+                    </Badge>
+                  )}
+                </IconButton>
+              }
+            >
+              {cartItems.length === 0 ? (
+                <MenuItem>Your cart is empty</MenuItem>
+              ) : (
+                cartItems.map((item, index) => (
+                  <MenuItem key={index}>
+                    {item}
+                    <IconButton onClick={() => removeFromCart(index)}>
+                      <DeleteIcon />
+                    </IconButton>
+                  </MenuItem>
+                ))
+              )}
+            </MatMenu>
+
             <NotificationProvider>
               <NotificationBar />
             </NotificationProvider>
@@ -156,11 +204,10 @@ const Header = () => {
               {mode === "light" ? <Brightness4 /> : <Brightness7 />}
             </IconButton>
 
-            <MatMenu
+            {/* <MatMenu
               menuButton={
                 <UserMenu>
                   <Hidden xsDown>
-                    <Span>{/* Hi <strong>{user.name}</strong> */}</Span>
                   </Hidden>
                   <Avatar
                     src={"/assets/images/admin.png"}
@@ -194,7 +241,7 @@ const Header = () => {
                 <PowerSettingsNew />
                 <Span>Logout</Span>
               </StyledItem>
-            </MatMenu>
+            </MatMenu> */}
           </Box>
         </TopbarContainer>
       </TopbarRoot>

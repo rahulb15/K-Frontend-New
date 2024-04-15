@@ -1,4 +1,4 @@
-import { mkReq, parseRes } from '../utils/api/utils';
+import { mkReq, parseRes } from './api/utils';
 
 const fetch = require('node-fetch');
 

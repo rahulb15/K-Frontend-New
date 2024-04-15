@@ -2,7 +2,6 @@
 import { createContext, useEffect, useReducer } from "react";
 import axios from "axios";
 // CUSTOM COMPONENT
-import MatLoading  from "../components/MatLoading";
 
 const initialState = {
   user: null,
@@ -77,8 +76,7 @@ export const AuthProvider = ({ children } : {children: any}) => {
     })();
   }, []);
 
-  // SHOW LOADER
-  if (!state.isInitialized) return <MatLoading />;
+
 
   return (
     <AuthContext.Provider value={{ ...state, method: "JWT", login, logout, register }}>
